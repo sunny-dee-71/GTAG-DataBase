@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Player Database</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .search-container {
+            margin-bottom: 20px;
+        }
+        .player-info {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Player Database</h1>
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Enter Name or Player ID">
+        <button onclick="searchPlayer()">Search</button>
+    </div>
+    <div id="result" class="player-info"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
