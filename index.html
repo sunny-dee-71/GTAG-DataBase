@@ -1,30 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Player Database</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        .search-container {
-            margin-bottom: 20px;
-        }
-        .player-info {
-            margin-top: 20px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firebase Upload Example</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js"></script>
 </head>
 <body>
-    <h1>Player Database</h1>
-    <div class="search-container">
-        <input type="text" id="searchInput" placeholder="Enter Name or Player ID">
-        <button onclick="searchPlayer()">Search</button>
-    </div>
-    <div id="result" class="player-info"></div>
+  <h1>Upload Player Data and File</h1>
 
-    <script src="script.js"></script>
+  <input type="file" id="fileInput" />
+  <button onclick="uploadFile()">Upload File</button>
+
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDKayWApP-GNh2v23trRVToSPXK85xVrDg",
+      authDomain: "gtag-database.firebaseapp.com",
+      projectId: "gtag-database",
+      storageBucket: "gtag-database.firebasestorage.app",
+      messagingSenderId: "858392947976",
+      appId: "1:858392947976:web:1df12083cd4a8303b890bd",
+      measurementId: "G-6BQD81LZG5"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+    const db = getDatabase(app);
+    const storage = getStorage(app);
+
+    // Upload player data to Realtime Database
+    function uploadPlayerData(playerId, playerName, playerScore) {
+      const playerData = {
+        playerName: playerName,
+        playerScore: playerScore
+      };
+
+      set(ref(db, 'players/' + playerId), playerData)
+        .then(() => {
+          console.log("Player data uploaded successfully!");
+        })
+        .catch((error) => {
+          console.error("Error uploading player data: ", error);
+        });
+    }
+
+    // Upload file to Firebase Storage
+    function uploadFile(file) {
+      const storageReference = storageRef(storage, 'uploads/' + file.name);
+
+      uploadBytes(storageReference, file)
+        .then((snapshot) => {
+          console.log("File uploaded successfully!");
+          getDownloadURL(snapshot.ref).then((url) => {
+            console.log("File available at: " + url);
+            const playerData = {
+              playerId: "123",
+              imageUrl: url
+            };
+            set(ref(db, 'players/123'), playerData);
+          });
+        })
+        .catch((error) => {
+          console.error("Error uploading file: ", error);
+        });
+    }
+
+    // Handle file selection
+    const fileInput = document.getElementById("fileInput");
+    fileInput.addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        uploadFile(file);
+      }
+    });
+
+  </script>
 </body>
 </html>
