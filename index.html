@@ -3,46 +3,99 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Player Database</title>
-  <script type="module" src="script.js"></script>
+  <title>Player Search</title>
+  <script type="module">
+    // Import the Firebase SDK
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDKayWApP-GNh2v23trRVToSPXK85xVrDg",
+      authDomain: "gtag-database.firebaseapp.com",
+      databaseURL: "https://gtag-database-default-rtdb.firebaseio.com",
+      projectId: "gtag-database",
+      storageBucket: "gtag-database.firebaseapp.com",
+      messagingSenderId: "858392947976",
+      appId: "1:858392947976:web:1df12083cd4a8303b890bd",
+      measurementId: "G-6BQD81LZG5"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    // Fetch and display player data
+    const fetchPlayers = (query = "") => {
+      const playersRef = ref(database, "players");
+      onValue(playersRef, (snapshot) => {
+        const players = snapshot.val();
+        const resultsContainer = document.getElementById("results");
+        resultsContainer.innerHTML = ""; // Clear previous results
+
+        if (players) {
+          Object.keys(players).forEach((playerId) => {
+            const player = players[playerId];
+
+            // Match query against player name or ID (case-insensitive)
+            if (
+              query === "" ||
+              player.PlayerName.toLowerCase().includes(query.toLowerCase()) ||
+              playerId.toLowerCase().includes(query.toLowerCase())
+            ) {
+              const playerDiv = document.createElement("div");
+              playerDiv.classList.add("player-card");
+              playerDiv.innerHTML = `
+                <h3>${player.PlayerName}</h3>
+                <p><strong>Player ID:</strong> ${playerId}</p>
+                <p><strong>Timestamp:</strong> ${player.Timestamp}</p>
+              `;
+              resultsContainer.appendChild(playerDiv);
+            }
+          });
+        } else {
+          resultsContainer.innerHTML = "<p>No players found.</p>";
+        }
+      });
+    };
+
+    // Search functionality
+    document.addEventListener("DOMContentLoaded", () => {
+      const searchInput = document.getElementById("searchInput");
+      searchInput.addEventListener("input", () => {
+        const query = searchInput.value.trim();
+        fetchPlayers(query);
+      });
+
+      // Fetch all players on page load
+      fetchPlayers();
+    });
+  </script>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
     }
-    table {
+    #searchInput {
       width: 100%;
-      border-collapse: collapse;
-    }
-    th, td {
       padding: 10px;
-      border: 1px solid #ddd;
-      text-align: left;
-    }
-    th {
-      background-color: #f4f4f4;
-    }
-    input {
-      padding: 10px;
-      width: 300px;
       margin-bottom: 20px;
+      font-size: 16px;
+    }
+    .player-card {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+    .player-card h3 {
+      margin: 0 0 5px;
     }
   </style>
 </head>
 <body>
-  <h1>Player Database</h1>
-  <input type="text" id="searchInput" placeholder="Search by Name or ID..." />
-  <table>
-    <thead>
-      <tr>
-        <th>Player Name</th>
-        <th>Player ID</th>
-        <th>Timestamp</th>
-      </tr>
-    </thead>
-    <tbody id="playerTable">
-      <!-- Player rows will be populated here -->
-    </tbody>
-  </table>
+  <h1>Gorilla Tag Player Database</h1>
+  <input type="text" id="searchInput" placeholder="Search by Player Name or ID" />
+  <div id="results"></div>
 </body>
 </html>
