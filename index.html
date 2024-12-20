@@ -28,6 +28,15 @@
     .player.expanded .player-details {
       display: block;
     }
+
+    #search-bar {
+      margin-bottom: 20px;
+      padding: 10px;
+      width: 100%;
+      max-width: 500px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
   </style>
   <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database.js"></script>
@@ -65,13 +74,28 @@
       playerDiv.innerHTML = `
         <p><strong>Name:</strong> ${player.PlayerName}</p>
         <p><strong>ID:</strong> ${player.PlayerId}</p>
-        <p><strong>Last Logged Time:</strong> ${player.Timestamp}</p>
+        <p><strong>Log Time:</strong> ${player.Timestamp}</p>
         <div class="player-details">
-        <!-- put the expanded player data shit here -->
+          <p><strong>Timestamp:</strong> ${player.Timestamp}</p>
         </div>
       `;
 
       playersContainer.appendChild(playerDiv);
+    }
+
+    // Function to filter players based on search input
+    function filterPlayers(searchQuery) {
+      const players = document.querySelectorAll(".player");
+      players.forEach(player => {
+        const name = player.querySelector("p:nth-child(1)").textContent.toLowerCase();
+        const id = player.querySelector("p:nth-child(2)").textContent.toLowerCase();
+
+        if (name.includes(searchQuery) || id.includes(searchQuery)) {
+          player.style.display = "block";
+        } else {
+          player.style.display = "none";
+        }
+      });
     }
 
     // Function to fetch and display all players
@@ -95,11 +119,23 @@
     // Fetch players on page load
     document.addEventListener("DOMContentLoaded", () => {
       fetchPlayers();
+
+      // Add search event listener
+      const searchBar = document.getElementById("search-bar");
+      searchBar.addEventListener("input", (event) => {
+        const searchQuery = event.target.value.toLowerCase();
+        filterPlayers(searchQuery);
+      });
     });
   </script>
 </head>
 <body>
   <h1>Player Data</h1>
+  <input
+    type="text"
+    id="search-bar"
+    placeholder="Search by Player Name or ID"
+  />
   <div id="players"></div> <!-- This is where player data will be displayed -->
 </body>
 </html>
