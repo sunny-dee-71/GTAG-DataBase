@@ -3,139 +3,127 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Player Data</title>
+  <title>Player Search</title>
+  <script type="module">
+    // Import the Firebase SDK
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDKayWApP-GNh2v23trRVToSPXK85xVrDg",
+      authDomain: "gtag-database.firebaseapp.com",
+      databaseURL: "https://gtag-database-default-rtdb.firebaseio.com",
+      projectId: "gtag-database",
+      storageBucket: "gtag-database.firebaseapp.com",
+      messagingSenderId: "858392947976",
+      appId: "1:858392947976:web:1df12083cd4a8303b890bd",
+      measurementId: "G-6BQD81LZG5"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    // Fetch and display player data
+    const fetchPlayers = (query = "") => {
+      const playersRef = ref(database, "players");
+      onValue(playersRef, (snapshot) => {
+        const players = snapshot.val();
+        const resultsContainer = document.getElementById("results");
+        resultsContainer.innerHTML = ""; // Clear previous results
+
+        if (players) {
+          Object.keys(players).forEach((playerId) => {
+            const player = players[playerId];
+
+            // Match query against player name or ID (case-insensitive)
+            if (
+              query === "" ||
+              player.PlayerName.toLowerCase().includes(query.toLowerCase()) ||
+              playerId.toLowerCase().includes(query.toLowerCase())
+            ) {
+              const playerDiv = document.createElement("div");
+              playerDiv.classList.add("player-card");
+
+              const detailsDiv = document.createElement("div");
+              detailsDiv.classList.add("player-details");
+              detailsDiv.style.display = "none"; // Hide details initially
+
+              playerDiv.innerHTML = `
+                <h3>${player.PlayerName}</h3>
+                <p><strong>Player ID:</strong> ${playerId}</p>
+              `;
+
+              detailsDiv.innerHTML = `
+                <p><strong>Rank:</strong> ${player.Rank || "N/A"}</p>
+                <p><strong>Score:</strong> ${player.Score || "N/A"}</p>
+                <p><strong>Timestamp:</strong> ${player.Timestamp || "N/A"}</p>
+              `;
+
+              playerDiv.appendChild(detailsDiv);
+
+              // Toggle details visibility on click
+              playerDiv.addEventListener("click", () => {
+                detailsDiv.style.display =
+                  detailsDiv.style.display === "none" ? "block" : "none";
+              });
+
+              resultsContainer.appendChild(playerDiv);
+            }
+          });
+        } else {
+          resultsContainer.innerHTML = "<p>No players found.</p>";
+        }
+      });
+    };
+
+    // Search functionality
+    document.addEventListener("DOMContentLoaded", () => {
+      const searchInput = document.getElementById("searchInput");
+      searchInput.addEventListener("input", () => {
+        const query = searchInput.value.trim();
+        fetchPlayers(query);
+      });
+
+      // Fetch all players on page load
+      fetchPlayers();
+    });
+  </script>
   <style>
-    .player {
-      border: 1px solid #ddd;
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    #searchInput {
+      width: 100%;
       padding: 10px;
-      margin: 10px 0;
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+    .player-card {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 10px;
       border-radius: 5px;
       cursor: pointer;
-      transition: background-color 0.2s;
     }
-
-    .player:hover {
+    .player-card h3 {
+      margin: 0;
+    }
+    .player-card:hover {
       background-color: #f9f9f9;
     }
-
     .player-details {
-      display: none;
       margin-top: 10px;
       padding-left: 10px;
       border-left: 2px solid #ccc;
     }
-
-    .player.expanded .player-details {
-      display: block;
-    }
-
-    #search-bar {
-      margin-bottom: 20px;
-      padding: 10px;
-      width: 100%;
-      max-width: 500px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
   </style>
-  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-database.js"></script>
-  <script>
-    // Your Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyDKayWApP-GNh2v23trRVToSPXK85xVrDg",
-  authDomain: "gtag-database.firebaseapp.com",
-  databaseURL: "https://gtag-database-default-rtdb.firebaseio.com",
-  projectId: "gtag-database",
-  storageBucket: "gtag-database.firebasestorage.app",
-  messagingSenderId: "858392947976",
-  appId: "1:858392947976:web:1df12083cd4a8303b890bd",
-  measurementId: "G-6BQD81LZG5"
-};
-
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    // Function to toggle player details
-    function togglePlayerDetails(event) {
-      const playerDiv = event.currentTarget;
-      playerDiv.classList.toggle("expanded");
-    }
-
-    // Function to display a player
-    function displayPlayer(player) {
-      const playersContainer = document.getElementById("players");
-
-      const playerDiv = document.createElement("div");
-      playerDiv.className = "player";
-      playerDiv.addEventListener("click", togglePlayerDetails);
-
-      playerDiv.innerHTML = `
-        <p><strong>Name:</strong> ${player.PlayerName}</p>
-        <p><strong>ID:</strong> ${player.PlayerId}</p>
-        <p><strong>Log Time:</strong> ${player.Timestamp}</p>
-        <div class="player-details">
-          <p><strong>Timestamp:</strong> ${player.Timestamp}</p>
-        </div>
-      `;
-
-      playersContainer.appendChild(playerDiv);
-    }
-
-    // Function to filter players based on search input
-    function filterPlayers(searchQuery) {
-      const players = document.querySelectorAll(".player");
-      players.forEach(player => {
-        const name = player.querySelector("p:nth-child(1)").textContent.toLowerCase();
-        const id = player.querySelector("p:nth-child(2)").textContent.toLowerCase();
-
-        if (name.includes(searchQuery) || id.includes(searchQuery)) {
-          player.style.display = "block";
-        } else {
-          player.style.display = "none";
-        }
-      });
-    }
-
-    // Function to fetch and display all players
-    function fetchPlayers() {
-      const playersRef = db.ref("players");
-      playersRef.on("value", (snapshot) => {
-        const playersContainer = document.getElementById("players");
-        playersContainer.innerHTML = ""; // Clear previous entries
-
-        const data = snapshot.val();
-        if (data) {
-          Object.values(data).forEach((player) => {
-            displayPlayer(player);
-          });
-        } else {
-          playersContainer.innerHTML = "<p>No players found.</p>";
-        }
-      });
-    }
-
-    // Fetch players on page load
-    document.addEventListener("DOMContentLoaded", () => {
-      fetchPlayers();
-
-      // Add search event listener
-      const searchBar = document.getElementById("search-bar");
-      searchBar.addEventListener("input", (event) => {
-        const searchQuery = event.target.value.toLowerCase();
-        filterPlayers(searchQuery);
-      });
-    });
-  </script>
 </head>
 <body>
-  <h1>Player Data</h1>
-  <input
-    type="text"
-    id="search-bar"
-    placeholder="Search by Player Name or ID"
-  />
-  <div id="players"></div> <!-- This is where player data will be displayed -->
+  <h1>Gorilla Tag Player Database</h1>
+  <input type="text" id="searchInput" placeholder="Search by Player Name or ID">
+  <div id="results"></div>
 </body>
 </html>
