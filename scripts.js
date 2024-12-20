@@ -3,10 +3,11 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebas
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
 
 // Your Firebase configuration
+// Initialize Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyDKayWApP-GNh2v23trRVToSPXK85xVrDg",
   authDomain: "gtag-database.firebaseapp.com",
-  databaseURL: "https://gtag-database.firebaseio.com",
+  databaseURL: "https://gtag-database-default-rtdb.firebaseio.com", // Correct URL here
   projectId: "gtag-database",
   storageBucket: "gtag-database.appspot.com",
   messagingSenderId: "858392947976",
@@ -14,7 +15,6 @@ const firebaseConfig = {
   measurementId: "G-6BQD81LZG5"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
