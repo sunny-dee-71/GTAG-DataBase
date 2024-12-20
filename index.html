@@ -53,12 +53,11 @@
               playerDiv.innerHTML = `
                 <h3>${player.PlayerName}</h3>
                 <p><strong>Player ID:</strong> ${playerId}</p>
+                <p><strong>Logged Time:</strong> ${player.Timestamp || "N/A"}</p>
               `;
 
               detailsDiv.innerHTML = `
-                <p><strong>Rank:</strong> ${player.Rank || "N/A"}</p>
-                <p><strong>Score:</strong> ${player.Score || "N/A"}</p>
-                <p><strong>Timestamp:</strong> ${player.Timestamp || "N/A"}</p>
+              
               `;
 
               playerDiv.appendChild(detailsDiv);
