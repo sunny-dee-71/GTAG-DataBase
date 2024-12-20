@@ -1,6 +1,6 @@
 // Import Firebase libraries
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js";
 
 // Your Firebase configuration
 const firebaseConfig = {
@@ -18,51 +18,59 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
-// Fetch players from the database
-async function fetchPlayers() {
-  const playerTable = document.getElementById("playerTable");
-  playerTable.innerHTML = ""; // Clear table before populating
-
+// Fetch players from the database and populate the table
+function fetchPlayers() {
   const playersRef = ref(database, "players/");
-  const snapshot = await get(playersRef);
+  const playerTable = document.getElementById("playerTable");
 
-  if (snapshot.exists()) {
-    const players = snapshot.val();
-    Object.keys(players).forEach((key) => {
-      const player = players[key];
-      addPlayerRow(player.PlayerName, player.PlayerId, player.Timestamp);
-    });
-  } else {
-    console.log("No data available");
+  onValue(playersRef, (snapshot) => {
+    if (snapshot.exists()) {
+      const players = snapshot.val();
+      displayPlayers(players);
+    } else {
+      console.log("No data available");
+      playerTable.innerHTML = `<tr><td colspan="3">No players found</td></tr>`;
+    }
+  });
+}
+
+// Display players in the table
+function displayPlayers(players, filter = "") {
+  const playerTable = document.getElementById("playerTable");
+  playerTable.innerHTML = ""; // Clear the table
+
+  Object.keys(players).forEach((key) => {
+    const player = players[key];
+    const name = player.PlayerName.toLowerCase();
+    const id = player.PlayerId.toLowerCase();
+
+    // If there's a search term, filter by name or ID
+    if (!filter || name.includes(filter) || id.includes(filter)) {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${player.PlayerName}</td>
+        <td>${player.PlayerId}</td>
+        <td>${player.Timestamp}</td>
+      `;
+      playerTable.appendChild(row);
+    }
+  });
+
+  // If no players match the search term
+  if (!playerTable.hasChildNodes()) {
+    playerTable.innerHTML = `<tr><td colspan="3">No players found</td></tr>`;
   }
 }
 
-// Add a row to the table for each player
-function addPlayerRow(name, id, timestamp) {
-  const playerTable = document.getElementById("playerTable");
-  const row = document.createElement("tr");
-
-  row.innerHTML = `
-    <td>${name}</td>
-    <td>${id}</td>
-    <td>${timestamp}</td>
-  `;
-
-  playerTable.appendChild(row);
-}
-
-// Implement search functionality
+// Handle search input
 document.getElementById("searchInput").addEventListener("input", function () {
   const filter = this.value.toLowerCase();
-  const rows = document.querySelectorAll("#playerTable tr");
+  const playersRef = ref(database, "players/");
 
-  rows.forEach((row) => {
-    const name = row.cells[0]?.textContent.toLowerCase();
-    const id = row.cells[1]?.textContent.toLowerCase();
-    if (name.includes(filter) || id.includes(filter)) {
-      row.style.display = "";
-    } else {
-      row.style.display = "none";
+  onValue(playersRef, (snapshot) => {
+    if (snapshot.exists()) {
+      const players = snapshot.val();
+      displayPlayers(players, filter);
     }
   });
 });
